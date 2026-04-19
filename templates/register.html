@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .register-container {
+        min-height: calc(100vh - 200px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+    }
+    .register-card {
+        background: white;
+        border-radius: 24px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+        max-width: 500px;
+        width: 100%;
+        overflow: hidden;
+    }
+    .register-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        text-align: center;
+    }
+    .register-header h2 {
+        font-size: 28px;
+        margin-bottom: 8px;
+        color: white;
+    }
+    .register-header p {
+        opacity: 0.9;
+        font-size: 14px;
+    }
+    .register-body {
+        padding: 35px;
+    }
+    .input-group {
+        margin-bottom: 20px;
+    }
+    .input-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #333;
+        font-size: 14px;
+    }
+    .input-group input {
+        width: 100%;
+        padding: 14px 16px;
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        font-size: 16px;
+        transition: all 0.3s;
+    }
+    .input-group input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+    }
+    .register-btn {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-top: 10px;
+    }
+    .register-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(102,126,234,0.4);
+    }
+    .login-link {
+        text-align: center;
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 1px solid #e0e0e0;
+        color: #666;
+    }
+    .login-link a {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 600;
+    }
+    .login-link a:hover {
+        text-decoration: underline;
+    }
+    .error-message {
+        background: #fee;
+        color: #dc3545;
+        padding: 12px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        text-align: center;
+        display: none;
+    }
+    .success-message {
+        background: #d4edda;
+        color: #28a745;
+        padding: 12px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        text-align: center;
+        display: none;
+    }
+    .phone-hint {
+        font-size: 12px;
+        color: #999;
+        margin-top: 5px;
+    }
+</style>
+
+<div class="register-container">
+    <div class="register-card">
+        <div class="register-header">
+            <h2>Создать аккаунт</h2>
+            <p>Присоединяйтесь к нам и планируйте мероприятия</p>
+        </div>
+        <div class="register-body">
+            <div id="errorMsg" class="error-message"></div>
+            <div id="successMsg" class="success-message"></div>
+            
+            <div class="input-group">
+                <label>Имя</label>
+                <input type="text" id="name" placeholder="Введите ваше имя">
+            </div>
+            
+            <div class="input-group">
+                <label>Фамилия</label>
+                <input type="text" id="surname" placeholder="Введите вашу фамилию">
+            </div>
+            
+            <div class="input-group">
+                <label>Номер телефона</label>
+                <input type="tel" id="phone" placeholder="+79991234567">
+                <div class="phone-hint">Введите номер в формате +7XXXXXXXXXX</div>
+            </div>
+            
+            <div class="input-group">
+                <label>Пароль</label>
+                <input type="password" id="password" placeholder="Придумайте пароль">
+            </div>
+            
+            <div class="input-group">
+                <label>Подтверждение пароля</label>
+                <input type="password" id="confirmPassword" placeholder="Повторите пароль">
+            </div>
+            
+            <button class="register-btn" onclick="register()">Зарегистрироваться</button>
+            
+            <div class="login-link">
+                Уже есть аккаунт? <a href="/login">Войти</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function register() {
+    const name = document.getElementById('name').value.trim();
+    const surname = document.getElementById('surname').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    
+    const errorDiv = document.getElementById('errorMsg');
+    const successDiv = document.getElementById('successMsg');
+    
+    errorDiv.style.display = 'none';
+    successDiv.style.display = 'none';
+    
+    if (!name || !surname || !phone || !password) {
+        errorDiv.textContent = 'Пожалуйста, заполните все поля';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    if (password !== confirmPassword) {
+        errorDiv.textContent = 'Пароли не совпадают';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    if (password.length < 4) {
+        errorDiv.textContent = 'Пароль должен содержать минимум 4 символа';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    if (!phone.match(/^\+?7\d{10}$/)) {
+        errorDiv.textContent = 'Введите корректный номер телефона в формате +79991234567';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/register', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({name, surname, phone, password})
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            successDiv.textContent = 'Регистрация успешна! Перенаправляем на страницу входа...';
+            successDiv.style.display = 'block';
+            setTimeout(() => {
+                window.location.href = '/login';
+            }, 1500);
+        } else {
+            errorDiv.textContent = data.error || 'Ошибка при регистрации';
+            errorDiv.style.display = 'block';
+        }
+    } catch (error) {
+        errorDiv.textContent = 'Ошибка соединения с сервером';
+        errorDiv.style.display = 'block';
+    }
+}
+
+document.getElementById('phone').addEventListener('input', function(e) {
+    let value = e.target.value;
+    if (!value.startsWith('+') && value.length > 0) {
+        e.target.value = '+' + value;
+    }
+});
+</script>
+{% endblock %}

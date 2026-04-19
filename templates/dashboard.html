@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .dashboard-header {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        border: 1px solid #e0e0e0;
+    }
+    .dashboard-header h1 {
+        font-size: 24px;
+        margin-bottom: 5px;
+        color: #333;
+    }
+    .dashboard-header p {
+        color: #666;
+        font-size: 14px;
+    }
+    .event-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+    }
+    .event-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 1px solid #e0e0e0;
+    }
+    .event-card:hover {
+        border-color: #667eea;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .event-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+    }
+    .event-meta {
+        color: #888;
+        font-size: 13px;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 50px;
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #e0e0e0;
+    }
+    .empty-state h3 {
+        margin-bottom: 10px;
+        color: #333;
+    }
+    .empty-state p {
+        color: #888;
+        margin-bottom: 20px;
+    }
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+    .modal-content {
+        background: white;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 450px;
+        padding: 25px;
+    }
+    .modal-content h2 {
+        font-size: 22px;
+        margin-bottom: 20px;
+        color: #333;
+    }
+    .btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+    .btn-primary {
+        background: #667eea;
+        color: white;
+    }
+    .btn-primary:hover {
+        background: #5a67d8;
+    }
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+    .btn-secondary:hover {
+        background: #5a6268;
+    }
+    .btn-success {
+        background: #28a745;
+        color: white;
+    }
+    .btn-success:hover {
+        background: #218838;
+    }
+    .form-control {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+    .form-control:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+    .error-message {
+        color: #dc3545;
+        margin-top: 15px;
+        display: none;
+    }
+    .button-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+    }
+</style>
+
+<div class="container">
+    <div class="dashboard-header">
+        <h1>Привет, <span id="userName"></span>!</h1>
+        <p>Здесь собраны все ваши мероприятия</p>
+        <button onclick="showCreateModal()" class="btn btn-success" style="margin-top: 15px;">Создать мероприятие</button>
+    </div>
+    
+    <div id="eventsList" class="event-grid"></div>
+</div>
+
+<div id="createModal" class="modal">
+    <div class="modal-content">
+        <h2>Создать мероприятие</h2>
+        <input type="text" id="eventTitle" class="form-control" placeholder="Название мероприятия">
+        <div class="button-group">
+            <button onclick="createNewEvent()" class="btn btn-primary" style="flex:1">Создать</button>
+            <button onclick="closeCreateModal()" class="btn btn-secondary" style="flex:1">Отмена</button>
+        </div>
+        <div id="error" class="error-message"></div>
+    </div>
+</div>
+
+<script>
+const userId = localStorage.getItem('user_id');
+const userName = localStorage.getItem('user_name');
+
+if (!userId) {
+    window.location.href = '/login';
+}
+
+document.getElementById('userName').innerHTML = userName || 'Пользователь';
+
+async function loadEvents() {
+    const res = await fetch('/api/events/user/' + userId);
+    const events = await res.json();
+    
+    const container = document.getElementById('eventsList');
+    
+    if (events.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <h3>У вас пока нет мероприятий</h3>
+                <p>Создайте первое мероприятие и пригласите друзей</p>
+                <button onclick="showCreateModal()" class="btn btn-success">Создать мероприятие</button>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    for (let i = 0; i < events.length; i++) {
+        html += `
+            <div class="event-card" onclick="goToEvent(${events[i].event_id})">
+                <div class="event-title">${escapeHtml(events[i].title)}</div>
+                <div class="event-meta">Нажмите для просмотра</div>
+            </div>
+        `;
+    }
+    container.innerHTML = html;
+}
+
+function goToEvent(eventId) {
+    window.location.href = '/event/' + eventId;
+}
+
+function showCreateModal() {
+    document.getElementById('createModal').style.display = 'flex';
+}
+
+function closeCreateModal() {
+    document.getElementById('createModal').style.display = 'none';
+    document.getElementById('eventTitle').value = '';
+    document.getElementById('error').style.display = 'none';
+}
+
+async function createNewEvent() {
+    const title = document.getElementById('eventTitle').value.trim();
+    
+    if (!title) {
+        document.getElementById('error').textContent = 'Введите название мероприятия';
+        document.getElementById('error').style.display = 'block';
+        return;
+    }
+    
+    const res = await fetch('/api/events', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({title, creator_id: parseInt(userId)})
+    });
+    
+    if (res.ok) {
+        alert('Мероприятие создано');
+        closeCreateModal();
+        loadEvents();
+    } else {
+        document.getElementById('error').textContent = 'Ошибка при создании';
+        document.getElementById('error').style.display = 'block';
+    }
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+loadEvents();
+
+document.getElementById('createModal').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('createModal')) {
+        closeCreateModal();
+    }
+});
+</script>
+{% endblock %}

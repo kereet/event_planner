@@ -1,0 +1,585 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .event-header {
+        background: #667eea;
+        color: white;
+        padding: 25px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+    }
+    .event-header h2 {
+        color: white;
+        margin-bottom: 15px;
+    }
+    .section-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        border: 1px solid #e0e0e0;
+    }
+    .section-title {
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: #333;
+    }
+    .slot-card {
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 12px;
+        background: #fafafa;
+    }
+    .slot-card.voted {
+        background: #e8f5e9;
+        border-color: #4caf50;
+    }
+    .slot-title {
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+    .votes-badge {
+        display: inline-block;
+        background: #4caf50;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+        margin-left: 10px;
+    }
+    .slot-info {
+        color: #666;
+        margin: 5px 0;
+        font-size: 14px;
+    }
+    .vote-btn {
+        background: #667eea;
+        color: white;
+        border: none;
+        padding: 6px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        margin-top: 10px;
+        font-size: 14px;
+    }
+    .vote-btn:hover {
+        background: #5a67d8;
+    }
+    .vote-btn:disabled {
+        background: #4caf50;
+        cursor: default;
+    }
+    .checklist-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+    }
+    .checklist-item input {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+    .checklist-text {
+        flex: 1;
+    }
+    .checklist-text.completed {
+        text-decoration: line-through;
+        color: #999;
+    }
+    .member-item {
+        padding: 8px;
+        border-bottom: 1px solid #eee;
+    }
+    .btn-small {
+        padding: 4px 10px;
+        font-size: 12px;
+        margin-left: 8px;
+    }
+    .btn-warning {
+        background: #ffc107;
+        color: #333;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 30px;
+        color: #999;
+    }
+    .final-slot-badge {
+        background: #4caf50;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        text-align: center;
+    }
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+    }
+    .modal-content {
+        background: white;
+        width: 400px;
+        margin: 100px auto;
+        padding: 25px;
+        border-radius: 12px;
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+    }
+    .form-control {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+    .error-message {
+        color: #dc3545;
+        margin-top: 10px;
+        display: none;
+    }
+    .btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+    .btn-primary {
+        background: #667eea;
+        color: white;
+    }
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+    .btn-success {
+        background: #28a745;
+        color: white;
+    }
+    .btn-danger {
+        background: #dc3545;
+        color: white;
+    }
+    .back-btn {
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+</style>
+
+<div class="container">
+    <div class="event-header">
+        <h2 id="eventTitle">Загрузка...</h2>
+        <button class="back-btn" onclick="goBack()">Назад</button>
+    </div>
+    
+    <div class="section-card">
+        <div class="section-title">Голосование за время и место</div>
+        <div id="finalSlotInfo"></div>
+        <button class="btn btn-success" onclick="showSlotForm()" style="margin-bottom: 15px;">Предложить вариант</button>
+        <div id="slotsList"></div>
+    </div>
+    
+    <div class="section-card">
+        <div class="section-title">Чек-лист</div>
+        <button class="btn btn-success" onclick="showAddChecklistForm()" style="margin-bottom: 15px;">Добавить пункт</button>
+        <div id="checklistList"></div>
+    </div>
+    
+    <div class="section-card">
+        <div class="section-title">Участники</div>
+        <button class="btn btn-success" onclick="showInviteForm()" style="margin-bottom: 15px;">Добавить участника</button>
+        <div id="membersList"></div>
+    </div>
+</div>
+
+<div id="slotModal" class="modal">
+    <div class="modal-content">
+        <h3 style="margin-bottom: 15px;">Предложить вариант</h3>
+        <div class="form-group">
+            <label>Дата и время</label>
+            <input type="datetime-local" id="slotTime" class="form-control">
+        </div>
+        <div class="form-group">
+            <label>Название места</label>
+            <input type="text" id="slotPlace" class="form-control" placeholder="Например: Кафе Уют">
+        </div>
+        <div class="form-group">
+            <label>Адрес</label>
+            <input type="text" id="slotAddress" class="form-control" placeholder="ул. Центральная, 15">
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="addSlot()" class="btn btn-primary" style="flex:1">Добавить</button>
+            <button onclick="closeSlotForm()" class="btn btn-secondary" style="flex:1">Отмена</button>
+        </div>
+        <div id="slotError" class="error-message"></div>
+    </div>
+</div>
+
+<div id="checklistModal" class="modal">
+    <div class="modal-content">
+        <h3 style="margin-bottom: 15px;">Добавить пункт</h3>
+        <div class="form-group">
+            <label>Текст пункта</label>
+            <input type="text" id="checklistText" class="form-control" placeholder="Например: Купить подарок">
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="addChecklistItem()" class="btn btn-primary" style="flex:1">Добавить</button>
+            <button onclick="closeChecklistForm()" class="btn btn-secondary" style="flex:1">Отмена</button>
+        </div>
+        <div id="checklistError" class="error-message"></div>
+    </div>
+</div>
+
+<div id="inviteModal" class="modal">
+    <div class="modal-content">
+        <h3 style="margin-bottom: 15px;">Добавить участника</h3>
+        <div class="form-group">
+            <label>Телефон пользователя</label>
+            <input type="text" id="searchPhone" class="form-control" placeholder="+79991234567">
+        </div>
+        <div id="searchResults" style="margin-top: 15px; max-height: 250px; overflow-y: auto;"></div>
+        <button onclick="closeInviteForm()" class="btn btn-secondary" style="width:100%; margin-top:15px">Отмена</button>
+        <div id="inviteError" class="error-message"></div>
+    </div>
+</div>
+
+<script>
+const userId = localStorage.getItem('user_id');
+const eventId = window.location.pathname.split('/').pop();
+let myVoteSlotId = null;
+
+if (!userId) {
+    window.location.href = '/login';
+}
+
+function goBack() {
+    window.location.href = '/dashboard';
+}
+
+async function loadEvent() {
+    const res = await fetch('/api/events/' + eventId);
+    const event = await res.json();
+    document.getElementById('eventTitle').innerHTML = event.title;
+}
+
+async function loadMyVote() {
+    const res = await fetch('/api/events/' + eventId + '/my-vote?user_id=' + userId);
+    const data = await res.json();
+    myVoteSlotId = data.slot_id;
+}
+
+async function loadSlots() {
+    const res = await fetch('/api/events/' + eventId + '/slots?user_id=' + userId);
+    const slots = await res.json();
+    
+    const container = document.getElementById('slotsList');
+    const finalInfo = document.getElementById('finalSlotInfo');
+    
+    const eventRes = await fetch('/api/events/' + eventId);
+    const event = await eventRes.json();
+    
+    if (event.final_slot_id) {
+        const finalSlot = slots.find(s => s.slot_id === event.final_slot_id);
+        if (finalSlot) {
+            finalInfo.innerHTML = '<div class="final-slot-badge">Финальный выбранный вариант: ' + escapeHtml(finalSlot.place_name) + '</div>';
+        }
+    } else {
+        finalInfo.innerHTML = '';
+    }
+    
+    if (slots.length === 0) {
+        container.innerHTML = '<div class="empty-state">Нет предложенных вариантов. Добавьте первый!</div>';
+        return;
+    }
+    
+    let html = '';
+    for (let i = 0; i < slots.length; i++) {
+        const slot = slots[i];
+        const date = new Date(slot.time).toLocaleString();
+        const isVoted = (myVoteSlotId === slot.slot_id);
+        const votedClass = isVoted ? 'voted' : '';
+        
+        html += '<div class="slot-card ' + votedClass + '">';
+        html += '<div class="slot-title">' + escapeHtml(slot.place_name) + '<span class="votes-badge">Голосов: ' + slot.votes_count + '</span></div>';
+        html += '<div class="slot-info">Адрес: ' + escapeHtml(slot.place_address) + '</div>';
+        html += '<div class="slot-info">Время: ' + date + '</div>';
+        
+        if (!event.final_slot_id) {
+            if (isVoted) {
+                html += '<button class="vote-btn" disabled>Вы проголосовали</button>';
+            } else {
+                html += '<button class="vote-btn" onclick="vote(' + slot.slot_id + ')">Голосовать</button>';
+            }
+        }
+        
+        html += '</div>';
+    }
+    container.innerHTML = html;
+}
+
+async function vote(slotId) {
+    if (!confirm('Вы уверены, что хотите проголосовать за этот вариант?')) {
+        return;
+    }
+    
+    try {
+        const res = await fetch('/api/votes', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                slot_id: slotId,
+                user_id: parseInt(userId),
+                event_id: parseInt(eventId)
+            })
+        });
+        
+        if (res.ok) {
+            alert('Ваш голос учтен!');
+            myVoteSlotId = slotId;
+            loadSlots();
+        } else {
+            alert('Ошибка при голосовании');
+        }
+    } catch (error) {
+        alert('Ошибка: ' + error.message);
+    }
+}
+
+function showSlotForm() { document.getElementById('slotModal').style.display = 'flex'; }
+function closeSlotForm() { document.getElementById('slotModal').style.display = 'none'; }
+
+async function addSlot() {
+    const time = document.getElementById('slotTime').value;
+    const placeName = document.getElementById('slotPlace').value.trim();
+    const placeAddress = document.getElementById('slotAddress').value.trim();
+    
+    if (!time || !placeName || !placeAddress) {
+        document.getElementById('slotError').textContent = 'Заполните все поля';
+        document.getElementById('slotError').style.display = 'block';
+        return;
+    }
+    
+    const res = await fetch('/api/events/' + eventId + '/slots', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            time: time + ':00',
+            place_name: placeName,
+            place_address: placeAddress,
+            created_by: parseInt(userId)
+        })
+    });
+    
+    if (res.ok) {
+        alert('Вариант добавлен!');
+        closeSlotForm();
+        loadSlots();
+    } else {
+        document.getElementById('slotError').textContent = 'Ошибка при добавлении';
+        document.getElementById('slotError').style.display = 'block';
+    }
+}
+
+async function loadChecklist() {
+    const res = await fetch('/api/events/' + eventId + '/checklist');
+    const items = await res.json();
+    
+    const container = document.getElementById('checklistList');
+    
+    if (items.length === 0) {
+        container.innerHTML = '<div class="empty-state">Чек-лист пуст</div>';
+        return;
+    }
+    
+    let html = '';
+    for (let i = 0; i < items.length; i++) {
+        const checked = items[i].is_completed ? 'checked' : '';
+        const completedClass = items[i].is_completed ? 'completed' : '';
+        
+        html += '<div class="checklist-item">';
+        html += '<input type="checkbox" ' + checked + ' onchange="toggleItem(' + items[i].item_id + ')">';
+        html += '<span class="checklist-text ' + completedClass + '">' + escapeHtml(items[i].text) + '</span>';
+        html += '<button class="btn-warning btn-small" onclick="editItem(' + items[i].item_id + ', \'' + escapeHtml(items[i].text) + '\')">Изменить</button>';
+        html += '<button class="btn-danger btn-small" onclick="deleteItem(' + items[i].item_id + ')">Удалить</button>';
+        html += '</div>';
+    }
+    container.innerHTML = html;
+}
+
+async function toggleItem(itemId) {
+    await fetch('/api/checklist/' + itemId, {method: 'PUT'});
+    loadChecklist();
+}
+
+async function deleteItem(itemId) {
+    if (confirm('Удалить пункт?')) {
+        await fetch('/api/checklist/' + itemId, {method: 'DELETE'});
+        loadChecklist();
+    }
+}
+
+async function editItem(itemId, oldText) {
+    const newText = prompt('Редактировать пункт:', oldText);
+    if (newText && newText !== oldText) {
+        await fetch('/api/checklist/' + itemId, {
+            method: 'PATCH',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({text: newText})
+        });
+        loadChecklist();
+    }
+}
+
+function showAddChecklistForm() { document.getElementById('checklistModal').style.display = 'flex'; }
+function closeChecklistForm() { document.getElementById('checklistModal').style.display = 'none'; }
+
+async function addChecklistItem() {
+    const text = document.getElementById('checklistText').value.trim();
+    
+    if (!text) {
+        document.getElementById('checklistError').textContent = 'Введите текст';
+        document.getElementById('checklistError').style.display = 'block';
+        return;
+    }
+    
+    const res = await fetch('/api/checklist', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            event_id: parseInt(eventId),
+            text: text
+        })
+    });
+    
+    if (res.ok) {
+        closeChecklistForm();
+        loadChecklist();
+    } else {
+        document.getElementById('checklistError').textContent = 'Ошибка';
+        document.getElementById('checklistError').style.display = 'block';
+    }
+}
+
+async function loadMembers() {
+    const res = await fetch('/api/events/' + eventId + '/members');
+    const members = await res.json();
+    
+    const container = document.getElementById('membersList');
+    
+    if (members.length === 0) {
+        container.innerHTML = '<div class="empty-state">Нет участников</div>';
+        return;
+    }
+    
+    let html = '';
+    for (let i = 0; i < members.length; i++) {
+        html += '<div class="member-item">' + escapeHtml(members[i].name) + ' ' + escapeHtml(members[i].surname) + '</div>';
+    }
+    container.innerHTML = html;
+}
+
+let searchTimeout;
+document.getElementById('searchPhone').addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    const phone = this.value.trim();
+    const resultsDiv = document.getElementById('searchResults');
+    
+    if (phone.length < 3) {
+        resultsDiv.innerHTML = '';
+        return;
+    }
+    
+    searchTimeout = setTimeout(async () => {
+        resultsDiv.innerHTML = '<div style="color: #666; text-align: center;">Поиск...</div>';
+        
+        const res = await fetch('/api/users/search?phone=' + encodeURIComponent(phone) + '&current_user_id=' + userId);
+        const users = await res.json();
+        
+        if (users.length === 0) {
+            resultsDiv.innerHTML = '<div style="color: #999; text-align: center;">Пользователи не найдены</div>';
+            return;
+        }
+        
+        let html = '';
+        for (let i = 0; i < users.length; i++) {
+            html += '<div onclick="addMember(' + users[i].user_id + ')" style="padding: 10px; border: 1px solid #ddd; margin: 5px 0; border-radius: 6px; cursor: pointer; background: #fafafa;">';
+            html += '<div style="font-weight: 500;">' + escapeHtml(users[i].name) + ' ' + escapeHtml(users[i].surname) + '</div>';
+            html += '<div style="font-size: 12px; color: #666;">' + users[i].phone + '</div>';
+            html += '</div>';
+        }
+        resultsDiv.innerHTML = html;
+    }, 500);
+});
+
+async function addMember(invitedUserId) {
+    const res = await fetch('/api/events/' + eventId + '/add-member', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            user_id: parseInt(userId),
+            invited_user_id: invitedUserId
+        })
+    });
+    
+    const data = await res.json();
+    
+    if (res.ok) {
+        alert('Участник добавлен!');
+        closeInviteForm();
+        loadMembers();
+    } else {
+        document.getElementById('inviteError').textContent = data.error || 'Ошибка';
+        document.getElementById('inviteError').style.display = 'block';
+    }
+}
+
+function showInviteForm() {
+    document.getElementById('inviteModal').style.display = 'flex';
+    document.getElementById('searchPhone').value = '';
+    document.getElementById('searchResults').innerHTML = '';
+}
+function closeInviteForm() { document.getElementById('inviteModal').style.display = 'none'; }
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+document.querySelectorAll('.modal').forEach(modal => {
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.style.display = 'none';
+    });
+});
+
+loadEvent();
+loadMyVote();
+loadSlots();
+loadChecklist();
+loadMembers();
+</script>
+{% endblock %}

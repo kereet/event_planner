@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="max-width: 500px; margin: 50px auto; text-align: center;">
+    <h2>Присоединение к мероприятию</h2>
+    <p id="message">Загрузка...</p>
+    <button onclick="window.location.href='/dashboard'" style="margin-top: 20px;">Перейти к мероприятиям</button>
+</div>
+
+<script>
+const token = window.location.pathname.split('/').pop();
+const userId = localStorage.getItem('user_id');
+
+if (!userId) {
+    window.location.href = '/login?redirect=/join/' + token;
+}
+
+async function joinEvent() {
+    try {
+        const res = await fetch('/api/join/' + token, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ user_id: parseInt(userId) })
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok) {
+            document.getElementById('message').innerHTML = '✅ Вы присоединились к мероприятию! Теперь оно появится в вашем списке.';
+            setTimeout(() => {
+                window.location.href = '/dashboard';
+            }, 2000);
+        } else {
+            document.getElementById('message').innerHTML = '❌ Ошибка: ' + (data.error || 'Не удалось присоединиться');
+        }
+    } catch (error) {
+        document.getElementById('message').innerHTML = '❌ Ошибка соединения';
+    }
+}
+
+joinEvent();
+</script>
+{% endblock %}

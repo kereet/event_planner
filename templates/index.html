@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 80px 20px;
+        text-align: center;
+        border-radius: 20px;
+        margin-bottom: 50px;
+    }
+    .hero h1 {
+        font-size: 48px;
+        margin-bottom: 20px;
+    }
+    .hero p {
+        font-size: 20px;
+        margin-bottom: 30px;
+        opacity: 0.95;
+    }
+    .hero-buttons {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    .btn-large {
+        padding: 15px 40px;
+        font-size: 18px;
+        border-radius: 50px;
+        text-decoration: none;
+        transition: transform 0.3s, box-shadow 0.3s;
+        display: inline-block;
+    }
+    .btn-large:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    .btn-primary {
+        background: white;
+        color: #667eea;
+    }
+    .btn-secondary {
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 2px solid white;
+    }
+    .features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+        margin-bottom: 50px;
+    }
+    .feature-card {
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        text-align: center;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        transition: transform 0.3s;
+    }
+    .feature-card:hover {
+        transform: translateY(-5px);
+    }
+    .feature-icon {
+        font-size: 50px;
+        margin-bottom: 20px;
+    }
+    .feature-card h3 {
+        color: #333;
+        margin-bottom: 15px;
+        font-size: 24px;
+    }
+    .feature-card p {
+        color: #666;
+        line-height: 1.6;
+    }
+    .how-it-works {
+        text-align: center;
+        margin-bottom: 50px;
+    }
+    .how-it-works h2 {
+        font-size: 36px;
+        color: #333;
+        margin-bottom: 40px;
+    }
+    .steps {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 30px;
+    }
+    .step {
+        text-align: center;
+    }
+    .step-number {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-size: 28px;
+        font-weight: bold;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+    }
+    .step h4 {
+        font-size: 20px;
+        color: #333;
+        margin-bottom: 10px;
+    }
+    .step p {
+        color: #666;
+    }
+    .cta {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        text-align: center;
+        padding: 60px 20px;
+        border-radius: 20px;
+    }
+    .cta h2 {
+        font-size: 36px;
+        margin-bottom: 20px;
+    }
+    .cta p {
+        font-size: 18px;
+        margin-bottom: 30px;
+        opacity: 0.95;
+    }
+    @media (max-width: 768px) {
+        .hero h1 {
+            font-size: 32px;
+        }
+        .hero p {
+            font-size: 16px;
+        }
+        .btn-large {
+            padding: 12px 25px;
+            font-size: 16px;
+        }
+        .features {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="hero">
+    <h1>Планируй встречи с друзьями легко!</h1>
+    <p>Создавай мероприятия, приглашай друзей, голосуй за время и место</p>
+    <div class="hero-buttons">
+        <a href="/register" class="btn-large btn-primary">Начать сейчас</a>
+        <a href="/login" class="btn-large btn-secondary">Войти</a>
+    </div>
+</div>
+
+<div class="container">
+    <div class="features">
+        <div class="feature-card">
+            <h3>Создавай события</h3>
+            <p>Легко создавай мероприятия и приглашай друзей одной ссылкой</p>
+        </div>
+        <div class="feature-card">
+            <h3>Голосуй вместе</h3>
+            <p>Выбирай удобное время и место вместе с друзьями</p>
+        </div>
+        <div class="feature-card">
+            <h3>Чек-листы</h3>
+            <p>Не забывай важные вещи с общим чек-листом</p>
+        </div>
+        <div class="feature-card">
+            <h3>Участники</h3>
+            <p>Добавляй участников и смотри, кто идет</p>
+        </div>
+        <div class="feature-card">
+            <h3>Напоминания</h3>
+            <p>Получай уведомления о предстоящих событиях</p>
+        </div>
+        <div class="feature-card">
+            <h3>История</h3>
+            <p>Храни историю всех мероприятий</p>
+        </div>
+    </div>
+
+    <div class="how-it-works">
+        <h2>Как это работает</h2>
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <h4>Зарегистрируйся</h4>
+                <p>Создай аккаунт по номеру телефона</p>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <h4>Создай мероприятие</h4>
+                <p>Добавь название и пригласи друзей</p>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <h4>Голосуйте</h4>
+                <p>Выберите удобное время и место</p>
+            </div>
+            <div class="step">
+                <div class="step-number">4</div>
+                <h4>Встречайтесь</h4>
+                <p>Наслаждайтесь совместным досугом</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="cta">
+        <h2>Готовы организовать встречу?</h2>
+        <p>Присоединяйся к нам и планируй мероприятия проще</p>
+        <a href="/register" class="btn-large btn-primary" style="background: white; color: #667eea;">Зарегистрироваться бесплатно</a>
+    </div>
+</div>
+{% endblock %}
